@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-ao">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Finanças - Administração PAMBALA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #FF6A00;
+            --bg-color: #F5F5F5;
+            --sidebar-bg: #1C1C1E;
+            --content-bg: #FFFFFF;
+            --text-color: #212121;
+            --sidebar-text: #FFFFFF;
+            --border-color: #E0E0E0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: fixed;
+        }
+        .sidebar-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+        .sidebar-header i {
+            color: var(--primary);
+        }
+        .nav-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-menu li a {
+            display: block;
+            padding: 15px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.2s;
+        }
+        .nav-menu li a.active, .nav-menu li a:hover {
+            background-color: var(--primary);
+        }
+        .nav-menu li a i {
+            margin-right: 15px;
+        }
+        .logout-btn {
+            margin-top: auto;
+            background: transparent;
+            border: 1px solid #E53935;
+            color: #E53935;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 30px;
+        }
+        .content-header {
+            margin-bottom: 30px;
+        }
+        .content-header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .content-body {
+            background-color: var(--content-bg);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        .content-body h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: #424242;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: #757575;
+        }
+        .balance-card {
+            background-color: #e0f7fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #00796b;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .entry-form-container {
+            margin-bottom: 30px;
+        }
+        .entry-form-container form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .entry-form-container label {
+            font-weight: bold;
+        }
+        .entry-form-container input, .entry-form-container select, .entry-form-container textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .btn-add-entry {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .entry-credit { color: #2a9d8f; }
+        .entry-debit { color: #e63946; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><i class="fas fa-shield-alt"></i> PAMBALA</div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="painel.html"><i class="fas fa-check-circle"></i> Verificações</a></li>
+                <li><a href="utilizadores.html"><i class="fas fa-users"></i> Utilizadores</a></li>
+                <li><a href="anuncios.html"><i class="fas fa-tags"></i> Anúncios</a></li>
+                <li><a href="financas.html" class="active"><i class="fas fa-wallet"></i> Finanças</a></li>
+            </ul>
+        </nav>
+        <button id="logout-btn" class="logout-btn">Terminar Sessão</button>
+    </aside>
+
+    <main class="main-content">
+        <div class="content-header">
+            <h1>Gestão de Finanças</h1>
+        </div>
+        <div class="content-body">
+
+            <div class="balance-card">
+                Balanço Atual: <span id="current-balance">A carregar...</span>
+            </div>
+
+            <div class="entry-form-container" id="entry-form-section">
+                <h2>Adicionar Lançamento no Razão</h2>
+                <form id="journal-entry-form">
+                    <label for="entry-description">Descrição</label>
+                    <textarea id="entry-description" required></textarea>
+
+                    <label for="entry-amount">Valor (Kz)</label>
+                    <input type="number" id="entry-amount" step="0.01" required>
+
+                    <label for="entry-type">Tipo de Lançamento</label>
+                    <select id="entry-type" required>
+                        <option value="credit">Crédito (Entrada)</option>
+                        <option value="debit">Débito (Saída)</option>
+                    </select>
+
+                    <button type="submit" class="btn-add-entry">Adicionar Lançamento</button>
+                </form>
+            </div>
+
+            <div class="transaction-history-container">
+                <h2>Histórico de Lançamentos</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="journal-entries-table-body">
+                        <tr><td colspan="4">A carregar histórico...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    const supabaseUrl = 'https://hztwtjgxhfrognqyjxaq.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6dHd0amd4aGZyb2ducXlqeGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjcxNzMsImV4cCI6MjA3MDYwMzE3M30.PBqfdKkkFSXicHQBjfZQEDt0C33Y88nLF1tpovurNXk';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    const rolesWithWriteAccess = ['proprietario', 'gestor', 'analista'];
+    const rolesWithReadAccess = ['proprietario', 'gestor', 'analista', 'ti'];
+
+    async function checkAuthAndRole() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = 'login-admin.html';
+            return;
+        }
+
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+        if (error || !profile || !rolesWithReadAccess.includes(profile.role)) {
+            alert('Acesso negado. O seu cargo não permite aceder a esta página.');
+            await supabase.auth.signOut();
+            window.location.href = 'login-admin.html';
+        } else {
+            // Se o utilizador tem apenas permissão de leitura, esconde o formulário
+            if (!rolesWithWriteAccess.includes(profile.role)) {
+                document.getElementById('entry-form-section').style.display = 'none';
+            }
+            fetchBalance();
+            fetchJournalEntries();
+        }
+    }
+
+    const currentBalanceEl = document.getElementById('current-balance');
+    async function fetchBalance() {
+        const { data: credits, error: creditError } = await supabase
+            .from('journal_entries')
+            .select('amount')
+            .eq('entry_type', 'credit');
+
+        const { data: debits, error: debitError } = await supabase
+            .from('journal_entries')
+            .select('amount')
+            .eq('entry_type', 'debit');
+
+        if (creditError || debitError) {
+            console.error('Erro ao carregar o balanço:', creditError || debitError);
+            currentBalanceEl.textContent = 'Erro ao carregar';
+            return;
+        }
+
+        const totalCredits = credits.reduce((sum, entry) => sum + parseFloat(entry.amount), 0);
+        const totalDebits = debits.reduce((sum, entry) => sum + parseFloat(entry.amount), 0);
+        const balance = totalCredits - totalDebits;
+
+        currentBalanceEl.textContent = `${balance.toLocaleString()} Kz`;
+    }
+
+    const journalEntriesTableBody = document.getElementById('journal-entries-table-body');
+    async function fetchJournalEntries() {
+        journalEntriesTableBody.innerHTML = '<tr><td colspan="4">A carregar histórico...</td></tr>';
+
+        const { data: entries, error } = await supabase
+            .from('journal_entries')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Erro ao carregar os lançamentos:', error);
+            journalEntriesTableBody.innerHTML = '<tr><td colspan="4" style="color: red;">Ocorreu um erro ao carregar os dados.</td></tr>';
+            return;
+        }
+
+        journalEntriesTableBody.innerHTML = '';
+        if (entries.length === 0) {
+            journalEntriesTableBody.innerHTML = '<tr><td colspan="4">Nenhum lançamento encontrado.</td></tr>';
+            return;
+        }
+
+        entries.forEach(entry => {
+            const date = new Date(entry.created_at).toLocaleDateString('pt-AO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const valueClass = entry.entry_type === 'credit' ? 'entry-credit' : 'entry-debit';
+            const valueSymbol = entry.entry_type === 'credit' ? '+' : '-';
+
+            const row = `
+                <tr>
+                    <td>${date}</td>
+                    <td>${entry.description}</td>
+                    <td class="${valueClass}">${valueSymbol} ${parseFloat(entry.amount).toLocaleString()} Kz</td>
+                    <td>${entry.entry_type === 'credit' ? 'Entrada' : 'Saída'}</td>
+                </tr>
+            `;
+            journalEntriesTableBody.innerHTML += row;
+        });
+    }
+
+    const journalEntryForm = document.getElementById('journal-entry-form');
+    journalEntryForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const description = document.getElementById('entry-description').value;
+        const amount = document.getElementById('entry-amount').value;
+        const type = document.getElementById('entry-type').value;
+
+        if (description.trim() === '' || amount <= 0) {
+            alert('Por favor, preencha todos os campos corretamente.');
+            return;
+        }
+
+        const { error } = await supabase
+            .from('journal_entries')
+            .insert({
+                description: description,
+                amount: amount,
+                entry_type: type
+            });
+
+        if (error) {
+            console.error('Erro ao adicionar lançamento:', error);
+            alert('Erro ao adicionar o lançamento. Tente novamente.');
+        } else {
+            alert('Lançamento adicionado com sucesso!');
+            journalEntryForm.reset();
+            fetchBalance();
+            fetchJournalEntries();
+        }
+    });
+
+    const logoutBtn = document.getElementById('logout-btn');
+    logoutBtn.addEventListener('click', async () => {
+        await supabase.auth.signOut();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAuthAndRole();
+    });
+    </script>
+</body>
+</html>

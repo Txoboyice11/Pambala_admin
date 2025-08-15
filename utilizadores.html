@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-ao">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Utilizadores - Administração PAMBALA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #FF6A00;
+            --bg-color: #F5F5F5;
+            --sidebar-bg: #1C1C1E;
+            --content-bg: #FFFFFF;
+            --text-color: #212121;
+            --sidebar-text: #FFFFFF;
+            --border-color: #E0E0E0;
+            --modal-bg: #FFFFFF;
+            --overlay-bg: rgba(0, 0, 0, 0.6);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: fixed;
+        }
+        .sidebar-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+        .sidebar-header i {
+            color: var(--primary);
+        }
+        .nav-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-menu li a {
+            display: block;
+            padding: 15px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.2s;
+        }
+        .nav-menu li a.active, .nav-menu li a:hover {
+            background-color: var(--primary);
+        }
+        .nav-menu li a i {
+            margin-right: 15px;
+        }
+        .logout-btn {
+            margin-top: auto;
+            background: transparent;
+            border: 1px solid #E53935;
+            color: #E53935;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 30px;
+        }
+        .content-header {
+            margin-bottom: 30px;
+        }
+        .content-header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .content-body {
+            background-color: var(--content-bg);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        .content-body h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: #424242;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: #757575;
+        }
+        .user-role-admin {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .user-role-user {
+            color: #757575;
+        }
+        .actions-cell {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn-toggle-admin {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-delete {
+            background-color: #e63946;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><i class="fas fa-shield-alt"></i> PAMBALA</div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="painel.html"><i class="fas fa-check-circle"></i> Verificações</a></li>
+                <li><a href="utilizadores.html" class="active"><i class="fas fa-users"></i> Utilizadores</a></li>
+                <li><a href="anuncios.html"><i class="fas fa-tags"></i> Anúncios</a></li>
+                <li><a href="financas.html"><i class="fas fa-wallet"></i> Finanças</a></li>
+            </ul>
+        </nav>
+        <button id="logout-btn" class="logout-btn">Terminar Sessão</button>
+    </aside>
+
+    <main class="main-content">
+        <div class="content-header">
+            <h1>Gestão de Utilizadores</h1>
+        </div>
+        <div class="content-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome do Utilizador</th>
+                        <th>E-mail</th>
+                        <th>Função</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <tr><td colspan="4">A carregar utilizadores...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    const supabaseUrl = 'https://hztwtjgxhfrognqyjxaq.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6dHd0amd4aGZyb2ducXlqeGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjcxNzMsImV4cCI6MjA3MDYwMzE3M30.PBqfdKkkFSXicHQBjfZQEDt0C33Y88nLF1tpovurNXk';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // ⭐ NOVO: Lista de cargos com acesso à gestão de utilizadores ⭐
+    const rolesWithAccess = ['proprietario', 'gestor', 'suporte'];
+    const rolesWithActions = ['proprietario', 'gestor'];
+
+    async function checkAuthAndRole() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = 'login-admin.html';
+            return;
+        }
+
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+        if (error || !profile || !rolesWithAccess.includes(profile.role)) {
+            alert('Acesso negado. O seu cargo não permite aceder a esta página.');
+            await supabase.auth.signOut();
+            window.location.href = 'login-admin.html';
+        } else {
+            loadUsers(profile.role);
+        }
+    }
+
+    async function loadUsers(userRole) {
+        const tableBody = document.getElementById('users-table-body');
+        tableBody.innerHTML = '<tr><td colspan="4">A carregar utilizadores...</td></tr>';
+
+        const { data: profiles, error } = await supabase
+            .from('profiles')
+            .select('id, full_name, role')
+            .order('full_name', { ascending: true });
+
+        if (error) {
+            console.error('Erro ao carregar utilizadores:', error);
+            tableBody.innerHTML = '<tr><td colspan="4" style="color: red;">Ocorreu um erro ao carregar os dados.</td></tr>';
+            return;
+        }
+
+        const userIds = profiles.map(profile => profile.id);
+
+        const { data: emails, error: emailError } = await supabase
+            .from('auth_user_emails')
+            .select('id, email')
+            .in('id', userIds);
+
+        if (emailError) {
+            console.error('Erro ao carregar os e-mails dos utilizadores:', emailError);
+        }
+
+        const emailMap = emails ? emails.reduce((map, user) => {
+            map[user.id] = user.email;
+            return map;
+        }, {}) : {};
+
+        tableBody.innerHTML = '';
+        if (profiles.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4">Nenhum utilizador encontrado.</td></tr>';
+            return;
+        }
+
+        profiles.forEach(user => {
+            const row = document.createElement('tr');
+
+            const roleClass = (user.role === 'proprietario' || user.role === 'gestor' || user.role === 'ti') ? 'user-role-admin' : 'user-role-user';
+
+            row.innerHTML = `
+                <td>${user.full_name}</td>
+                <td>${emailMap[user.id] || 'E-mail não encontrado'}</td>
+                <td class="${roleClass}">${user.role}</td>
+                <td class="actions-cell">
+                    ${rolesWithActions.includes(userRole) ? `
+                        <button class="btn-toggle-admin" data-user-id="${user.id}" data-current-role="${user.role}">Mudar Cargo</button>
+                        <button class="btn-delete" data-user-id="${user.id}">Apagar</button>
+                    ` : `
+                        <p>Sem permissão</p>
+                    `}
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    async function toggleAdminStatus(userId, currentRole) {
+        const newRole = currentRole === 'utilizador_comum' ? 'gestor' : 'utilizador_comum';
+
+        if (!confirm(`Tem a certeza que deseja alterar o cargo deste utilizador para ${newRole}?`)) {
+            return;
+        }
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({ role: newRole })
+            .eq('id', userId);
+
+        if (error) {
+            console.error('Erro ao atualizar o cargo:', error);
+            alert('Não foi possível atualizar o cargo. Tente novamente.');
+        } else {
+            alert(`O cargo foi alterado com sucesso!`);
+            checkAuthAndRole();
+        }
+    }
+
+    async function deleteUser(userId) {
+        if (!userId) return;
+
+        if (!confirm('Tem a certeza que deseja apagar este utilizador? Esta ação é irreversível.')) {
+            return;
+        }
+
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .delete()
+            .eq('id', userId);
+
+        if (profileError) {
+            console.error('Erro ao apagar o perfil:', profileError);
+            alert('Não foi possível apagar o perfil. Tente novamente.');
+            return;
+        }
+
+        alert('Utilizador apagado com sucesso!');
+        checkAuthAndRole();
+    }
+
+    document.addEventListener('click', async (event) => {
+        if (event.target.classList.contains('btn-toggle-admin')) {
+            const userId = event.target.getAttribute('data-user-id');
+            const currentRole = event.target.getAttribute('data-current-role');
+
+            await toggleAdminStatus(userId, currentRole);
+        }
+        if (event.target.classList.contains('btn-delete')) {
+            const userId = event.target.getAttribute('data-user-id');
+            await deleteUser(userId);
+        }
+    });
+
+    const logoutBtn = document.getElementById('logout-btn');
+    logoutBtn.addEventListener('click', async () => {
+        await supabase.auth.signOut();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAuthAndRole();
+    });
+    </script>
+</body>
+</html>

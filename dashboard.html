@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-ao">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Administração PAMBALA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #FF6A00;
+            --bg-color: #F5F5F5;
+            --sidebar-bg: #1C1C1E;
+            --content-bg: #FFFFFF;
+            --text-color: #212121;
+            --sidebar-text: #FFFFFF;
+            --border-color: #E0E0E0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: fixed;
+        }
+        .sidebar-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+        .sidebar-header i {
+            color: var(--primary);
+        }
+        .nav-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-menu li a {
+            display: block;
+            padding: 15px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.2s;
+        }
+        .nav-menu li a.active, .nav-menu li a:hover {
+            background-color: var(--primary);
+        }
+        .nav-menu li a i {
+            margin-right: 15px;
+        }
+        .logout-btn {
+            margin-top: auto;
+            background: transparent;
+            border: 1px solid #E53935;
+            color: #E53935;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 30px;
+        }
+        .content-header {
+            margin-bottom: 30px;
+        }
+        .content-header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .content-body {
+            background-color: var(--content-bg);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        .content-body h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: #424242;
+        }
+        /* --- ESTILOS DOS GRÁFICOS E ESTATÍSTICAS --- */
+        .stats-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 768px) {
+            .stats-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .ranking-list {
+            list-style: none;
+            padding: 0;
+        }
+        .ranking-list li {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .balance-card, .revenue-card {
+            background-color: #e0f7fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #00796b;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><i class="fas fa-shield-alt"></i> PAMBALA</div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="dashboard.html" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="painel.html"><i class="fas fa-check-circle"></i> Verificações</a></li>
+                <li><a href="utilizadores.html"><i class="fas fa-users"></i> Utilizadores</a></li>
+                <li><a href="anuncios.html"><i class="fas fa-tags"></i> Anúncios</a></li>
+                <li><a href="financas.html"><i class="fas fa-wallet"></i> Finanças</a></li>
+            </ul>
+        </nav>
+        <button id="logout-btn" class="logout-btn">Terminar Sessão</button>
+    </aside>
+
+    <main class="main-content">
+        <div class="content-header">
+            <h1>Dashboard</h1>
+        </div>
+        <div class="content-body">
+
+            <div class="balance-card">
+                Balanço Geral da Plataforma: <span id="platform-balance">A carregar...</span>
+            </div>
+
+            <h2>Estatísticas da Plataforma</h2>
+            <div class="stats-container">
+                <div>
+                    <p><b>Total de Utilizadores:</b> <span id="total-users">0</span></p>
+                    <p><b>Candidaturas Pendentes:</b> <span id="pending-apps">0</span></p>
+                    <p><b>Candidaturas Aprovadas:</b> <span id="approved-apps">0</span></p>
+                    <p><b>Candidaturas Rejeitadas:</b> <span id="rejected-apps">0</span></p>
+                </div>
+                <div>
+                    <canvas id="verification-chart"></canvas>
+                </div>
+            </div>
+
+            <hr style="margin-top: 30px; margin-bottom: 30px;">
+            <h2>Evolução Mensal</h2>
+            <canvas id="monthly-stats-chart"></canvas>
+
+            <hr style="margin-top: 30px; margin-bottom: 30px;">
+            <h2>Rankings Mensais</h2>
+            <div class="stats-container">
+                <div>
+                    <h3>Melhores Vendedores</h3>
+                    <ul id="best-sellers" class="ranking-list">
+                        <li>A carregar...</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Melhores Afiliados</h3>
+                    <ul id="best-affiliates" class="ranking-list">
+                        <li>A carregar...</li>
+                    </ul>
+                </div>
+            </div>
+            <button id="update-ranking-btn" class="btn-show-calculator">Atualizar Ranking</button>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://hztwtjgxhfrognqyjxaq.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6dHd0amd4aGZyb2ducXlqeGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjcxNzMsImV4cCI6MjA3MDYwMzE3M30.PBqfdKkkFSXicHQBjfZQEDt0C33Y88nLF1tpovurNXk';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        const logoutBtn = document.getElementById('logout-btn');
+        logoutBtn.addEventListener('click', async () => {
+            await supabase.auth.signOut();
+        });
+
+        const totalUsersEl = document.getElementById('total-users');
+        const pendingAppsEl = document.getElementById('pending-apps');
+        const approvedAppsEl = document.getElementById('approved-apps');
+        const rejectedAppsEl = document.getElementById('rejected-apps');
+        const verificationChartCanvas = document.getElementById('verification-chart').getContext('2d');
+        const monthlyStatsChartCanvas = document.getElementById('monthly-stats-chart').getContext('2d');
+
+        const bestSellersList = document.getElementById('best-sellers');
+        const bestAffiliatesList = document.getElementById('best-affiliates');
+        const updateRankingBtn = document.getElementById('update-ranking-btn');
+
+        const platformBalanceEl = document.getElementById('platform-balance');
+
+        let verificationChart;
+        let monthlyStatsChart;
+
+        async function fetchBalance() {
+            const { data: credits, error: creditError } = await supabase
+                .from('journal_entries')
+                .select('amount')
+                .eq('entry_type', 'credit');
+
+            const { data: debits, error: debitError } = await supabase
+                .from('journal_entries')
+                .select('amount')
+                .eq('entry_type', 'debit');
+
+            if (creditError || debitError) {
+                console.error('Erro ao carregar o balanço:', creditError || debitError);
+                platformBalanceEl.textContent = 'Erro ao carregar';
+                return;
+            }
+
+            const totalCredits = credits.reduce((sum, entry) => sum + parseFloat(entry.amount), 0);
+            const totalDebits = debits.reduce((sum, entry) => sum + parseFloat(entry.amount), 0);
+            const balance = totalCredits - totalDebits;
+
+            platformBalanceEl.textContent = `${balance.toLocaleString()} Kz`;
+        }
+
+        async function fetchStats() {
+            const { count: totalUsers, error: usersError } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true });
+
+            const { count: pendingApps, error: pendingError } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .eq('verification_status', 'pendente');
+
+            const { count: approvedApps, error: approvedError } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .eq('verification_status', 'aprovado');
+
+            const { count: rejectedApps, error: rejectedError } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .eq('verification_status', 'rejeitado');
+
+            if (!usersError) totalUsersEl.textContent = totalUsers;
+            if (!pendingError) pendingAppsEl.textContent = pendingApps;
+            if (!approvedError) approvedAppsEl.textContent = approvedApps;
+            if (!rejectedError) rejectedAppsEl.textContent = rejectedApps;
+
+            if (verificationChart) {
+                verificationChart.destroy();
+            }
+
+            verificationChart = new Chart(verificationChartCanvas, {
+                type: 'pie',
+                data: {
+                    labels: ['Pendentes', 'Aprovadas', 'Rejeitadas'],
+                    datasets: [{
+                        label: 'Candidaturas',
+                        data: [pendingApps, approvedApps, rejectedApps],
+                        backgroundColor: ['#f4a261', '#2a9d8f', '#e63946']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: {
+                            display: true,
+                            text: 'Status das Candidaturas'
+                        }
+                    }
+                }
+            });
+        }
+
+        async function fetchMonthlyStats() {
+            const { data: snapshots, error } = await supabase
+                .from('monthly_snapshots')
+                .select('month, year, total_users, pending_apps, approved_apps, rejected_apps, ranking_data')
+                .order('year', { ascending: true })
+                .order('month', { ascending: true })
+                .limit(12);
+
+            if (error) {
+                console.error('Erro ao carregar os snapshots mensais:', error);
+                return;
+            }
+
+            const labels = snapshots.map(s => `${s.month}/${s.year}`);
+            const totalUsersData = snapshots.map(s => s.total_users);
+            const pendingData = snapshots.map(s => s.pending_apps);
+            const approvedData = snapshots.map(s => s.approved_apps);
+
+            if (monthlyStatsChart) {
+                monthlyStatsChart.destroy();
+            }
+
+            monthlyStatsChart = new Chart(monthlyStatsChartCanvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Total de Utilizadores',
+                            data: totalUsersData,
+                            borderColor: '#1d3557',
+                            backgroundColor: 'rgba(29, 53, 87, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Candidaturas Pendentes',
+                            data: pendingData,
+                            borderColor: '#f4a261',
+                            backgroundColor: 'rgba(244, 162, 97, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Candidaturas Aprovadas',
+                            data: approvedData,
+                            borderColor: '#2a9d8f',
+                            backgroundColor: 'rgba(42, 157, 143, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: {
+                            display: true,
+                            text: 'Evolução Mensal das Estatísticas'
+                        }
+                    }
+                }
+            });
+
+            if (snapshots.length > 0) {
+                const latestSnapshot = snapshots[snapshots.length - 1];
+                const rankingData = latestSnapshot.ranking_data;
+                displayRankings(rankingData);
+            }
+        }
+
+        async function displayRankings(rankingData) {
+            bestSellersList.innerHTML = '';
+            bestAffiliatesList.innerHTML = '';
+
+            if (rankingData && rankingData.best_sellers && rankingData.best_affiliates) {
+                const sellerIds = rankingData.best_sellers.map(s => s.id);
+                const affiliateIds = rankingData.best_affiliates.map(a => a.id);
+                const allRankingIds = [...new Set([...sellerIds, ...affiliateIds])];
+
+                const { data: profiles, error } = await supabase
+                    .from('profiles')
+                    .select('id, full_name')
+                    .in('id', allRankingIds);
+
+                if (error) {
+                    console.error('Erro ao carregar perfis para o ranking:', error);
+                    return;
+                }
+
+                const profileMap = profiles.reduce((map, p) => {
+                    map[p.id] = p.full_name;
+                    return map;
+                }, {});
+
+                rankingData.best_sellers.forEach(s => {
+                    const fullName = profileMap[s.id] || 'Utilizador Desconhecido';
+                    bestSellersList.innerHTML += `<li>${fullName} (${s.sales_count} vendas)</li>`;
+                });
+
+                rankingData.best_affiliates.forEach(a => {
+                    const fullName = profileMap[a.id] || 'Utilizador Desconhecido';
+                    bestAffiliatesList.innerHTML += `<li>${fullName} (${a.commissions_count} comissões)</li>`;
+                });
+            } else {
+                bestSellersList.innerHTML += `<li>Nenhum dado de ranking disponível.</li>`;
+                bestAffiliatesList.innerHTML += `<li>Nenhum dado de ranking disponível.</li>`;
+            }
+        }
+
+        async function callRankingFunction() {
+            const { data, error } = await supabase.rpc('calculate_monthly_ranking');
+
+            if (error) {
+                console.error('Erro ao calcular o ranking:', error);
+                alert('Ocorreu um erro ao calcular o ranking. Verifique o console.');
+            } else {
+                alert('Ranking atualizado com sucesso!');
+                fetchMonthlyStats();
+            }
+        }
+
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login-admin.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            checkAuth();
+            await fetchBalance();
+            await fetchStats();
+            await fetchMonthlyStats();
+        });
+    </script>
+</body>
+</html>

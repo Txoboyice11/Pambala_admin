@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-ao">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Administração PAMBALA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #FF6A00;
+            --bg-color: #F5F5F5;
+            --sidebar-bg: #1C1C1E;
+            --content-bg: #FFFFFF;
+            --text-color: #212121;
+            --sidebar-text: #FFFFFF;
+            --border-color: #E0E0E0;
+            --modal-bg: #FFFFFF;
+            --overlay-bg: rgba(0, 0, 0, 0.6);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: fixed;
+        }
+        .sidebar-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+        .sidebar-header i {
+            color: var(--primary);
+        }
+        .nav-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-menu li a {
+            display: block;
+            padding: 15px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.2s;
+        }
+        .nav-menu li a.active, .nav-menu li a:hover {
+            background-color: var(--primary);
+        }
+        .nav-menu li a i {
+            margin-right: 15px;
+        }
+        .logout-btn {
+            margin-top: auto;
+            background: transparent;
+            border: 1px solid #E53935;
+            color: #E53935;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 30px;
+        }
+        .content-header {
+            margin-bottom: 30px;
+        }
+        .content-header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .content-body {
+            background-color: var(--content-bg);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        .content-body h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: #424242;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: #757575;
+        }
+        .btn-details {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        /* --- ESTILOS DO MODAL --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: var(--overlay-bg);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: var(--modal-bg);
+            margin: auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .close-btn {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #000;
+            text-decoration: none;
+        }
+        .modal-body p {
+            margin-bottom: 10px;
+        }
+        .modal-body span {
+            font-weight: bold;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-approve, .btn-reject {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        .btn-approve {
+            background-color: #4CAF50;
+        }
+        .btn-reject {
+            background-color: #F44336;
+        }
+        /* --- ESTILOS DOS BOTÕES DE FILTRO E PESQUISA --- */
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .filter-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: transparent;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .search-container input {
+            width: 100%;
+            padding: 12px 15px;
+            padding-right: 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .search-container .fa-search {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9E9E9E;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><i class="fas fa-shield-alt"></i> PAMBALA</div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="painel.html" class="active"><i class="fas fa-check-circle"></i> Verificações</a></li>
+                <li><a href="utilizadores.html"><i class="fas fa-users"></i> Utilizadores</a></li>
+                <li><a href="anuncios.html"><i class="fas fa-tags"></i> Anúncios</a></li>
+                <li><a href="financas.html"><i class="fas fa-wallet"></i> Finanças</a></li>
+            </ul>
+        </nav>
+        <button id="logout-btn" class="logout-btn">Terminar Sessão</button>
+    </aside>
+
+    <main class="main-content">
+        <div class="content-header">
+            <h1>Gestão de Verificações</h1>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="pendente">Pendentes</button>
+                <button class="filter-btn" data-filter="aprovado">Aprovadas</button>
+                <button class="filter-btn" data-filter="rejeitado">Rejeitadas</button>
+                <button class="filter-btn" data-filter="log">Log de Atividades</button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Pesquisar por nome ou e-mail...">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+
+        <div class="content-body" id="pending-section">
+            <h2>Candidaturas Pendentes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data da Submissão</th>
+                        <th>Nome do Utilizador</th>
+                        <th>Tipo de Selo</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="pending-table-body">
+                    <tr><td colspan="4">A carregar candidaturas...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="content-body" id="approved-section" style="display: none;">
+            <h2>Candidaturas Aprovadas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data da Aprovação</th>
+                        <th>Nome do Utilizador</th>
+                        <th>Tipo de Selo</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="approved-table-body">
+                    <tr><td colspan="4">A carregar candidaturas...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="content-body" id="rejected-section" style="display: none;">
+            <h2>Candidaturas Rejeitadas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data da Rejeição</th>
+                        <th>Nome do Utilizador</th>
+                        <th>Tipo de Selo</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="rejected-table-body">
+                    <tr><td colspan="4">A carregar candidaturas...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="content-body" id="log-section" style="display: none;">
+            <h2>Log de Atividades</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data da Ação</th>
+                        <th>Ação</th>
+                        <th>Utilizador</th>
+                        <th>Administrador</th>
+                    </tr>
+                </thead>
+                <tbody id="log-table-body">
+                    <tr><td colspan="4">A carregar log...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="application-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalhes da Candidatura</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p><span>Nome:</span> <span id="modal-user-name"></span></p>
+                <p><span>Tipo de Selo:</span> <span id="modal-verification-type"></span></p>
+                <p><span>Documento de Identificação:</span> <a href="#" id="modal-id-document" target="_blank">Ver Documento</a></p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-reject" id="btn-reject">Rejeitar</button>
+                <button class="btn-approve" id="btn-approve">Aprovar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    const supabaseUrl = 'https://hztwtjgxhfrognqyjxaq.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6dHd0amd4aGZyb2ducXlqeGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjcxNzMsImV4cCI6MjA3MDYwMzE3M30.PBqfdKkkFSXicHQBjfZQEDt0C33Y88nLF1tpovurNXk';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    const modal = document.getElementById('application-modal');
+    const closeBtn = document.querySelector('.close-btn');
+    const modalUserName = document.getElementById('modal-user-name');
+    const modalVerificationType = document.getElementById('modal-verification-type');
+    const modalIdDocument = document.getElementById('modal-id-document');
+    const btnApprove = document.getElementById('btn-approve');
+    const btnReject = document.getElementById('btn-reject');
+
+    const sections = {
+        'pendente': document.getElementById('pending-section'),
+        'aprovado': document.getElementById('approved-section'),
+        'rejeitado': document.getElementById('rejected-section'),
+        'log': document.getElementById('log-section')
+    };
+
+    const searchInput = document.getElementById('search-input');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+
+    let currentUserId = null;
+    let currentFilter = 'pendente';
+
+    const rolesWithActions = ['proprietario', 'gestor', 'moderador', 'ti'];
+
+    async function checkAuthAndRole() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = 'login-admin.html';
+            return;
+        }
+
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+        if (error || !profile || !['proprietario', 'gestor', 'moderador', 'suporte', 'ti', 'designer'].includes(profile.role)) {
+            alert('Acesso negado.');
+            await supabase.auth.signOut();
+            window.location.href = 'login-admin.html';
+        } else {
+            // Se o utilizador tem apenas "Acesso Básico", esconde os botões de ação
+            if (profile.role === 'suporte') {
+                document.querySelectorAll('.modal-actions button').forEach(btn => btn.style.display = 'none');
+            }
+            loadAllApplications();
+        }
+    }
+
+    async function logVerificationAction(userId, action) {
+        const { data: { session } } = await supabase.auth.getSession();
+        const adminId = session.user.id;
+
+        const { error } = await supabase
+            .from('verification_logs')
+            .insert({
+                user_profile_id: userId,
+                admin_id: adminId,
+                action: action
+            });
+
+        if (error) {
+            console.error('Erro ao registar a ação de verificação:', error);
+        }
+    }
+
+    async function approveApplication() {
+        if (!currentUserId) return;
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+
+        if (!rolesWithActions.includes(profile.role)) {
+            alert('Não tem permissão para realizar esta ação.');
+            return;
+        }
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                verification_status: 'aprovado',
+                is_verified: true
+            })
+            .eq('id', currentUserId);
+
+        if (error) {
+            console.error('Erro ao aprovar a candidatura:', error);
+            alert('Erro ao aprovar. Tente novamente.');
+        } else {
+            alert('Candidatura aprovada com sucesso!');
+            await logVerificationAction(currentUserId, 'aprovado');
+            closeModalAndReturnToPending();
+        }
+    }
+
+    async function rejectApplication() {
+        if (!currentUserId) return;
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+
+        if (!rolesWithActions.includes(profile.role)) {
+            alert('Não tem permissão para realizar esta ação.');
+            return;
+        }
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                verification_status: 'rejeitado',
+                is_verified: false
+            })
+            .eq('id', currentUserId);
+
+        if (error) {
+            console.error('Erro ao rejeitar a candidatura:', error);
+            alert('Erro ao rejeitar. Tente novamente.');
+        } else {
+            alert('Candidatura rejeitada com sucesso!');
+            await logVerificationAction(currentUserId, 'rejeitado');
+            closeModalAndReturnToPending();
+        }
+    }
+
+    async function showApplicationDetails(userId) {
+        currentUserId = userId;
+        const { data: application, error } = await supabase
+            .from('profiles')
+            .select('full_name, verification_type, id_document_url')
+            .eq('id', userId)
+            .single();
+
+        if (error) {
+            console.error('Erro ao carregar detalhes da candidatura:', error);
+            alert('Não foi possível carregar os detalhes. Por favor, tente novamente.');
+            return;
+        }
+
+        modalUserName.textContent = application.full_name;
+        modalVerificationType.textContent = application.verification_type === 'seller' ? 'Vendedor' : 'Confiança';
+        modalIdDocument.href = application.id_document_url;
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        currentUserId = null;
+    }
+
+    async function closeModalAndReturnToPending() {
+        closeModal();
+        searchInput.value = '';
+        await loadAllApplications();
+        showSection('pendente');
+        setActiveButton(document.querySelector('[data-filter="pendente"]'));
+    }
+
+    async function loadApplications(status, tableId, searchTerm = '') {
+        const tableBody = document.getElementById(tableId);
+        tableBody.innerHTML = '<tr><td colspan="4">A carregar candidaturas...</td></tr>';
+
+        let query = supabase
+            .from('profiles')
+            .select('id, full_name, verification_type, created_at, role')
+            .eq('verification_status', status);
+
+        if (searchTerm) {
+            const term = `%${searchTerm.toLowerCase()}%`;
+            query = query.or(`full_name.ilike.${term},email.ilike.${term}`);
+        }
+
+        const { data: applications, error } = await query.order('created_at', { ascending: true });
+
+        if (error) {
+            console.error(`Erro ao carregar as candidaturas ${status}:`, error);
+            tableBody.innerHTML = '<tr><td colspan="4" style="color: red;">Ocorreu um erro ao carregar os dados.</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = '';
+        if (applications.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="4">Nenhuma candidatura ${status} encontrada.</td></tr>`;
+            return;
+        }
+
+        applications.forEach(app => {
+            const row = `
+                <tr>
+                    <td>${new Date(app.created_at).toLocaleDateString('pt-AO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td>${app.full_name}</td>
+                    <td>${app.verification_type === 'seller' ? 'Vendedor' : 'Confiança'}</td>
+                    <td><button class="btn-details" data-user-id="${app.id}">Ver Detalhes</button></td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    async function loadLog() {
+        const tableBody = document.getElementById('log-table-body');
+        tableBody.innerHTML = '<tr><td colspan="4">A carregar log...</td></tr>';
+
+        const { data: logs, error } = await supabase
+            .from('verification_logs')
+            .select(`
+                action,
+                created_at,
+                admin_id,
+                profiles(full_name)
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Erro ao carregar o log:', error);
+            tableBody.innerHTML = '<tr><td colspan="4" style="color: red;">Ocorreu um erro ao carregar o log.</td></tr>';
+            return;
+        }
+
+        const adminIds = [...new Set(logs.map(log => log.admin_id))];
+
+        const { data: admins, error: adminError } = await supabase
+            .from('users', { schema: 'auth' })
+            .select('id, email')
+            .in('id', adminIds);
+
+        if (adminError) {
+            console.error('Erro ao carregar os e-mails dos administradores:', adminError);
+        }
+
+        const adminEmailMap = admins ? admins.reduce((map, admin) => {
+            map[admin.id] = admin.email;
+            return map;
+        }, {}) : {};
+
+        tableBody.innerHTML = '';
+        if (logs.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4">Nenhum registo de atividade encontrado.</td></tr>';
+            return;
+        }
+
+        logs.forEach(log => {
+            const actionText = log.action === 'aprovado' ? 'Aprovou' : 'Rejeitou';
+            const userFullName = log.profiles ? log.profiles.full_name : 'Utilizador não encontrado';
+            const adminEmail = adminEmailMap[log.admin_id] || 'Administrador não encontrado';
+
+            const row = `
+                <tr>
+                    <td>${new Date(log.created_at).toLocaleDateString('pt-AO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td>${actionText}</td>
+                    <td>${userFullName}</td>
+                    <td>${adminEmail}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    async function loadAllApplications() {
+        await loadApplications('pendente', 'pending-table-body');
+        await loadApplications('aprovado', 'approved-table-body');
+        await loadApplications('rejeitado', 'rejected-table-body');
+        await loadLog();
+    }
+
+    function showSection(filter) {
+        currentFilter = filter;
+        for (const key in sections) {
+            sections[key].style.display = 'none';
+        }
+        sections[filter].style.display = 'block';
+    }
+
+    function setActiveButton(button) {
+        const buttons = document.querySelectorAll('.filter-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAuthAndRole();
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const filter = button.dataset.filter;
+                setActiveButton(button);
+                showSection(filter);
+            });
+        });
+
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value;
+            if (currentFilter !== 'log') {
+                loadApplications(currentFilter, `${currentFilter}-table-body`, searchTerm);
+            } else {
+                loadLog();
+            }
+        });
+
+        showSection('pendente');
+    });
+
+    document.addEventListener('click', async (event) => {
+        if (event.target.classList.contains('btn-details')) {
+            const userId = event.target.getAttribute('data-user-id');
+            if (userId) {
+                await showApplicationDetails(userId);
+            }
+        }
+    });
+
+    btnApprove.addEventListener('click', approveApplication);
+    btnReject.addEventListener('click', rejectApplication);
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    const logoutBtn = document.getElementById('logout-btn');
+    logoutBtn.addEventListener('click', async () => {
+        await supabase.auth.signOut();
+    });
+    </script>
+</body>
+</html>

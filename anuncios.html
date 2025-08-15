@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-ao">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Anúncios - Administração PAMBALA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #FF6A00;
+            --bg-color: #F5F5F5;
+            --sidebar-bg: #1C1C1E;
+            --content-bg: #FFFFFF;
+            --text-color: #212121;
+            --sidebar-text: #FFFFFF;
+            --border-color: #E0E0E0;
+            --modal-bg: #FFFFFF;
+            --overlay-bg: rgba(0, 0, 0, 0.6);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: fixed;
+        }
+        .sidebar-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+        .sidebar-header i {
+            color: var(--primary);
+        }
+        .nav-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-menu li a {
+            display: block;
+            padding: 15px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.2s;
+        }
+        .nav-menu li a.active, .nav-menu li a:hover {
+            background-color: var(--primary);
+        }
+        .nav-menu li a i {
+            margin-right: 15px;
+        }
+        .logout-btn {
+            margin-top: auto;
+            background: transparent;
+            border: 1px solid #E53935;
+            color: #E53935;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 30px;
+        }
+        .content-header {
+            margin-bottom: 30px;
+        }
+        .content-header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .content-body {
+            background-color: var(--content-bg);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        .content-body h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: #424242;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: #757575;
+        }
+        .ad-pending { color: #f4a261; }
+        .ad-approved { color: #2a9d8f; }
+        .ad-rejected { color: #e63946; }
+        .ad-actions button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: var(--overlay-bg);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: var(--modal-bg);
+            margin: auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .close-btn {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #000;
+            text-decoration: none;
+        }
+        .modal-body p {
+            margin-bottom: 10px;
+        }
+        .modal-body span {
+            font-weight: bold;
+        }
+        .modal-body img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-approve, .btn-reject, .btn-delete {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        .btn-approve {
+            background-color: #4CAF50;
+        }
+        .btn-reject {
+            background-color: #F44336;
+        }
+        .btn-delete {
+            background-color: #e63946;
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .filter-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: transparent;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .search-container input {
+            width: 100%;
+            padding: 12px 15px;
+            padding-right: 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .search-container .fa-search {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9E9E9E;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><i class="fas fa-shield-alt"></i> PAMBALA</div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="painel.html"><i class="fas fa-check-circle"></i> Verificações</a></li>
+                <li><a href="utilizadores.html"><i class="fas fa-users"></i> Utilizadores</a></li>
+                <li><a href="anuncios.html" class="active"><i class="fas fa-tags"></i> Anúncios</a></li>
+                <li><a href="financas.html"><i class="fas fa-wallet"></i> Finanças</a></li>
+            </ul>
+        </nav>
+        <button id="logout-btn" class="logout-btn">Terminar Sessão</button>
+    </aside>
+
+    <main class="main-content">
+        <div class="content-header">
+            <h1>Gestão de Anúncios</h1>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="pending">Pendentes</button>
+                <button class="filter-btn" data-filter="approved">Aprovados</button>
+                <button class="filter-btn" data-filter="rejected">Rejeitados</button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="search-input-ad" placeholder="Pesquisar por título...">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+        <div class="content-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Preço</th>
+                        <th>Criado por</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="ads-table-body">
+                    <tr><td colspan="5">A carregar anúncios...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="ad-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-ad-title">Detalhes do Anúncio</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p><span>Título:</span> <span id="modal-ad-title-value"></span></p>
+                <p><span>Descrição:</span> <span id="modal-ad-description-value"></span></p>
+                <p><span>Preço:</span> <span id="modal-ad-price-value"></span></p>
+                <p><span>Categoria:</span> <span id="modal-ad-category-value"></span></p>
+                <img id="modal-ad-image" src="" alt="Imagem do Anúncio">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-reject" id="btn-reject-ad">Rejeitar</button>
+                <button class="btn-approve" id="btn-approve-ad">Aprovar</button>
+                <button class="btn-delete" id="btn-delete-ad-modal">Apagar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    const supabaseUrl = 'https://hztwtjgxhfrognqyjxaq.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6dHd0amd4aGZyb2ducXlqeGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjcxNzMsImV4cCI6MjA3MDYwMzE3M30.PBqfdKkkFSXicHQBjfZQEDt0C33Y88nLF1tpovurNXk';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    const adModal = document.getElementById('ad-modal');
+    const adModalCloseBtn = document.querySelector('#ad-modal .close-btn');
+    const adModalTitle = document.getElementById('modal-ad-title-value');
+    const adModalDescription = document.getElementById('modal-ad-description-value');
+    const adModalPrice = document.getElementById('modal-ad-price-value');
+    const adModalCategory = document.getElementById('modal-ad-category-value');
+    const adModalImage = document.getElementById('modal-ad-image');
+    const btnApproveAd = document.getElementById('btn-approve-ad');
+    const btnRejectAd = document.getElementById('btn-reject-ad');
+    const btnDeleteAdModal = document.getElementById('btn-delete-ad-modal');
+    const searchInputAd = document.getElementById('search-input-ad');
+    const filterButtonsAd = document.querySelectorAll('.filter-btn');
+
+    let currentAdId = null;
+    let currentAdFilter = 'all';
+
+    // ⭐ NOVO: Lista de cargos com permissão para realizar ações ⭐
+    const rolesWithActions = ['proprietario', 'gestor', 'moderador', 'ti'];
+    const rolesWithAccess = ['proprietario', 'gestor', 'moderador', 'ti', 'designer'];
+
+    async function checkAuthAndRole() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = 'login-admin.html';
+            return;
+        }
+
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+        if (error || !profile || !rolesWithAccess.includes(profile.role)) {
+            alert('Acesso negado. O seu cargo não permite aceder a esta página.');
+            await supabase.auth.signOut();
+            window.location.href = 'login-admin.html';
+        } else {
+            // Esconde botões de ação se o utilizador não tiver permissão
+            if (!rolesWithActions.includes(profile.role)) {
+                document.querySelectorAll('.ad-actions button').forEach(btn => btn.style.display = 'none');
+                document.querySelectorAll('.modal-actions button').forEach(btn => btn.style.display = 'none');
+            }
+            loadAds();
+        }
+    }
+
+    async function approveAd() {
+        if (!currentAdId) return;
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+
+        if (!rolesWithActions.includes(profile.role)) {
+            alert('Não tem permissão para realizar esta ação.');
+            return;
+        }
+
+        const { error } = await supabase
+            .from('ads')
+            .update({ status: 'approved' })
+            .eq('id', currentAdId);
+
+        if (error) {
+            console.error('Erro ao aprovar anúncio:', error);
+            alert('Erro ao aprovar o anúncio. Tente novamente.');
+        } else {
+            alert('Anúncio aprovado com sucesso!');
+            closeAdModal();
+            loadAds();
+        }
+    }
+
+    async function rejectAd() {
+        if (!currentAdId) return;
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+
+        if (!rolesWithActions.includes(profile.role)) {
+            alert('Não tem permissão para realizar esta ação.');
+            return;
+        }
+
+        const { error } = await supabase
+            .from('ads')
+            .update({ status: 'rejected' })
+            .eq('id', currentAdId);
+
+        if (error) {
+            console.error('Erro ao rejeitar anúncio:', error);
+            alert('Erro ao rejeitar o anúncio. Tente novamente.');
+        } else {
+            alert('Anúncio rejeitado com sucesso!');
+            closeAdModal();
+            loadAds();
+        }
+    }
+
+    async function deleteAd(adId) {
+        if (!adId) return;
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+
+        if (!rolesWithActions.includes(profile.role)) {
+            alert('Não tem permissão para realizar esta ação.');
+            return;
+        }
+
+        if (!confirm('Tem a certeza que deseja apagar este anúncio? Esta ação é irreversível.')) {
+            return;
+        }
+
+        const { error } = await supabase
+            .from('ads')
+            .delete()
+            .eq('id', adId);
+
+        if (error) {
+            console.error('Erro ao apagar anúncio:', error);
+            alert('Erro ao apagar o anúncio. Tente novamente.');
+        } else {
+            alert('Anúncio apagado com sucesso!');
+            closeAdModal();
+            loadAds();
+        }
+    }
+
+    function closeAdModal() {
+        adModal.style.display = 'none';
+        currentAdId = null;
+    }
+
+    async function showAdDetails(adId) {
+        currentAdId = adId;
+
+        const { data: ad, error } = await supabase
+            .from('ads')
+            .select('title, description, price, category, image_url')
+            .eq('id', adId)
+            .single();
+
+        if (error) {
+            console.error('Erro ao carregar detalhes do anúncio:', error);
+            alert('Não foi possível carregar os detalhes. Por favor, tente novamente.');
+            return;
+        }
+
+        adModalTitle.textContent = ad.title;
+        adModalDescription.textContent = ad.description;
+        adModalPrice.textContent = `${ad.price.toLocaleString()} Kz`;
+        adModalCategory.textContent = ad.category;
+        adModalImage.src = ad.image_url;
+
+        adModal.style.display = 'flex';
+    }
+
+    async function loadAds(filter = 'all', searchTerm = '') {
+        const tableBody = document.getElementById('ads-table-body');
+        tableBody.innerHTML = '<tr><td colspan="5">A carregar anúncios...</td></tr>';
+
+        let query = supabase
+            .from('ads')
+            .select(`
+                id,
+                title,
+                price,
+                status,
+                profiles(full_name)
+            `);
+
+        if (filter !== 'all') {
+            query = query.eq('status', filter);
+        }
+
+        if (searchTerm) {
+            query = query.ilike('title', `%${searchTerm}%`);
+        }
+
+        const { data: ads, error } = await query.order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Erro ao carregar anúncios:', error);
+            tableBody.innerHTML = '<tr><td colspan="5" style="color: red;">Ocorreu um erro ao carregar os dados.</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = '';
+        if (ads.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5">Nenhum anúncio encontrado.</td></tr>';
+            return;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+
+        ads.forEach(ad => {
+            const statusClass = ad.status === 'pending' ? 'ad-pending' : (ad.status === 'approved' ? 'ad-approved' : 'ad-rejected');
+            const ownerName = ad.profiles ? ad.profiles.full_name : 'Utilizador Desconhecido';
+
+            const row = `
+                <tr>
+                    <td>${ad.title}</td>
+                    <td>${ad.price.toLocaleString()} Kz</td>
+                    <td>${ownerName}</td>
+                    <td class="${statusClass}">${ad.status}</td>
+                    <td class="ad-actions">
+                        <button class="btn-details-ad" data-ad-id="${ad.id}">Ver Detalhes</button>
+                        ${rolesWithActions.includes(profile.role) ? `<button class="btn-delete-ad" data-ad-id="${ad.id}">Apagar</button>` : ''}
+                    </td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    const logoutBtn = document.getElementById('logout-btn');
+    logoutBtn.addEventListener('click', async () => {
+        await supabase.auth.signOut();
+    });
+
+    document.addEventListener('click', async (event) => {
+        if (event.target.classList.contains('btn-details-ad')) {
+            const adId = event.target.getAttribute('data-ad-id');
+            if (adId) {
+                await showAdDetails(adId);
+            }
+        }
+        if (event.target.classList.contains('btn-delete-ad-list')) {
+            const adId = event.target.getAttribute('data-ad-id');
+            await deleteAd(adId);
+        }
+        if (event.target.id === 'btn-delete-ad-modal') {
+             await deleteAd(currentAdId);
+        }
+    });
+
+    // ⭐ NOVO: Event listeners para os botões do modal ⭐
+    btnApproveAd.addEventListener('click', approveAd);
+    btnRejectAd.addEventListener('click', rejectAd);
+    btnDeleteAdModal.addEventListener('click', () => { deleteAd(currentAdId); }); // Usa a função de apagar
+    adModalCloseBtn.addEventListener('click', closeAdModal);
+
+    // ⭐ NOVO: Event listeners para o filtro e pesquisa ⭐
+    filterButtonsAd.forEach(button => {
+        button.addEventListener('click', () => {
+            currentAdFilter = button.dataset.filter;
+            filterButtonsAd.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            loadAds(currentAdFilter, searchInputAd.value);
+        });
+    });
+
+    searchInputAd.addEventListener('input', () => {
+        const searchTerm = searchInputAd.value;
+        loadAds(currentAdFilter, searchTerm);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAuthAndRole();
+        loadAds();
+    });
+    </script>
+</body>
+</html>
